@@ -1,6 +1,14 @@
+import 'dart:developer';
+import 'package:finddelivery/pages/timeline.dart';
+import 'package:finddelivery/pages/profile.dart';
+import 'package:finddelivery/pages/search.dart';
+import 'package:finddelivery/pages/upload.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+
+import 'activity_feed.dart';
 
 final GoogleSignIn googleSignIn = GoogleSignIn();
 
@@ -11,12 +19,16 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   bool isAuth = false;
-
+  PageController pageController;
+  int pageIndex = 0;
+  FirebaseAuth _auth = FirebaseAuth.instance;
   @override
   void initState() {
     super.initState();
+    pageController = PageController();
     // Detects when user signed in
     googleSignIn.onCurrentUserChanged.listen((account) {
+      addFirebaseAuth(account);
       handleSignIn(account);
     }, onError: (err) {
       print('Error signing in: $err');
@@ -27,6 +39,18 @@ class _HomeState extends State<Home> {
     }).catchError((err) {
       print('Error signing in: $err');
     });
+  }
+
+  addFirebaseAuth(GoogleSignInAccount googleUser) async {
+    if (googleUser != null) {
+      GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final AuthCredential credential = GoogleAuthProvider.getCredential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+      final FirebaseUser user = (await _auth.signInWithCredential(credential)).user;
+      print("signed in " + user.displayName);
+    }
   }
 
   handleSignIn(GoogleSignInAccount account) {
@@ -42,6 +66,12 @@ class _HomeState extends State<Home> {
     }
   }
 
+  @override
+  void dispose() {
+    pageController.dispose();
+    super.dispose();
+  }
+
   login() {
     googleSignIn.signIn();
   }
@@ -50,10 +80,64 @@ class _HomeState extends State<Home> {
     googleSignIn.signOut();
   }
 
+  onPageChanged(int pageIndex) {
+    setState(() {
+      this.pageIndex = pageIndex;
+    });
+  }
+
+  onTap(int pageIndex) {
+    pageController.jumpToPage(
+      pageIndex,
+    );
+  }
+
   Widget buildAuthScreen() {
-    return RaisedButton(
-      child: Text('Logout'),
-      onPressed: logout,
+    return Scaffold(
+      appBar: AppBar(
+        leading: new IconButton(
+          icon: new Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: logout,
+        ),
+        title: Text("Sample"),
+        centerTitle: true,
+      ),
+      body: PageView(
+        children: <Widget>[
+          Timeline(),
+          ActivityFeed(),
+          Upload(),
+          Search(),
+          Profile(),
+        ],
+        controller: pageController,
+        onPageChanged: onPageChanged,
+        physics: NeverScrollableScrollPhysics(),
+      ),
+      bottomNavigationBar: CupertinoTabBar(
+          currentIndex: pageIndex,
+          onTap: onTap,
+          activeColor: Theme.of(context).primaryColor,
+          items: [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.whatshot),
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.notifications_active),
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(
+                Icons.photo_camera,
+                size: 35.0,
+              ),
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.search),
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.account_circle),
+            ),
+          ]),
     );
   }
 
@@ -61,15 +145,6 @@ class _HomeState extends State<Home> {
     return Scaffold(
       body: Container(
         color: Colors.white,
-        // decoration: BoxDecoration(
-        //   gradient: LinearGradient(
-        //       begin: Alignment.topRight,
-        //       end: Alignment.bottomLeft,
-        //       colors: [
-        //         Theme.of(context).accentColor,
-        //         Theme.of(context).primaryColor,
-        //       ]),
-        // ),
         alignment: Alignment.center,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
