@@ -2,6 +2,7 @@
 // import 'package:finddelivery/pages/signup.dart';
 // import 'package:firebase_auth/firebase_auth.dart';
 // import 'package:flutter/material.dart';
+// import 'package:flutter_facebook_login/flutter_facebook_login.dart';
 // import 'package:google_sign_in/google_sign_in.dart';
 
 // class LoginPage extends StatefulWidget {
@@ -15,6 +16,11 @@
 // class _LoginPageState extends State<LoginPage> {
 //   String _email;
 //   String _password;
+
+
+//   final facebookLogin = FacebookLogin();
+
+
 
 //   GoogleSignIn googleAuth = GoogleSignIn();
 
@@ -72,19 +78,49 @@
 //                 textColor: Colors.white,
 //                 elevation: 7.0,
 //                 onPressed: () => {
-//                   googleAuth.signIn().then((result){
-//                     result.authentication.then((googleKey){
-//                       FirebaseAuth.instance.signInwithG
+//                   // googleAuth.signIn().then((result){
+//                 //     result.authentication.then((googleKey){
+//                 //       FirebaseAuth.instance.signInwithG
 
-//                     }).catchError((onError){
-//                       print(onError);
-//                     });
-//                   }).catchError((onError){
-//                       print(onError);
-//                     }),
+//                 //     }).catchError((onError){
+//                 //       print(onError);
+//                 //     });
+//                 //   }).catchError((onError){
+//                 //       print(onError);
+//                 //     }),
 
 //                 },
 //               ),
+
+//               SizedBox(height: 20.0),
+//               RaisedButton(
+//                 child: Text('FB SignIn'),
+//                 color: Colors.blueAccent,
+//                 textColor: Colors.white,
+//                 elevation: 7.0,
+//                 onPressed: () => {
+//                     final result = await facebookLogin.logIn(['email']);
+//                     switch (result.status) {
+//                       case FacebookLoginStatus.loggedIn:
+//                         _sendTokenToServer(result.accessToken.token);
+//                         _showLoggedInUI();
+//                         break;
+//                       case FacebookLoginStatus.cancelledByUser:
+//                         _showCancelledMessage();
+//                         break;
+//                       case FacebookLoginStatus.error:
+//                         _showErrorOnUI(result.errorMessage);
+//                         break;
+//                     }
+
+//                 },
+//               ),
+
+
+
+
+
+
 //               SizedBox(height: 15.0),
 //               Text('Don\'t have an account?'),
 //               SizedBox(height: 15.0),

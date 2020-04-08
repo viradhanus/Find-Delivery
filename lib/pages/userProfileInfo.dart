@@ -1,15 +1,15 @@
 // import 'package:flutter/foundation.dart';
 // import 'package:flutter/material.dart';
-// import 'main.dart'; //important fix
+// import 'home.dart'; //important fix
 
-// class DetailedScreen extends StatelessWidget {
+// class UserProfileInfo extends StatelessWidget {
 //   final UserInfoDetails detailsUser;
 
 //   // DetailScreen({
 //   //   Key key,
 //   //   this.name}) : super(key: key);
 
-//   DetailedScreen({Key key, @required this.detailsUser}) : super(key: key);
+//   UserProfileInfo({Key key, @required this.detailsUser}) : super(key: key);
 
 //   @override
 //   Widget build(BuildContext context) {
@@ -44,28 +44,7 @@
 //               new Padding(
 //                 padding: new EdgeInsets.all(5.0),
 //               ),
-//               new Text(
-//                 "isAnonymous : " + detailsUser.isAnonymous.toString(),
-//                 textAlign: TextAlign.center,
-//                 overflow: TextOverflow.ellipsis,
-//                 textScaleFactor: 1.2,
-//                 style: new TextStyle(
-//                     fontWeight: FontWeight.bold, color: Colors.brown),
-//               ),
-//               new Padding(
-//                 padding: new EdgeInsets.all(5.0),
-//               ),
-//               new Text(
-//                 "isEmailVerified : " + detailsUser.isEmailVerified.toString(),
-//                 textAlign: TextAlign.center,
-//                 overflow: TextOverflow.ellipsis,
-//                 textScaleFactor: 1.2,
-//                 style: new TextStyle(
-//                     fontWeight: FontWeight.bold, color: Colors.brown),
-//               ),
-//               new Padding(
-//                 padding: new EdgeInsets.all(5.0),
-//               ),
+              
 //               new Text(
 //                 "Photo URL : " + detailsUser.photoUrl,
 //                 textAlign: TextAlign.center,
@@ -77,14 +56,7 @@
 //               new Padding(
 //                 padding: new EdgeInsets.all(5.0),
 //               ),
-//               new Text(
-//                 "Provider ID : " + detailsUser.providerId,
-//                 textAlign: TextAlign.center,
-//                 overflow: TextOverflow.ellipsis,
-//                 textScaleFactor: 1.2,
-//                 style: new TextStyle(
-//                     fontWeight: FontWeight.bold, color: Colors.brown),
-//               ),
+              
 //               new Padding(
 //                 padding: new EdgeInsets.all(5.0),
 //               ),
@@ -96,20 +68,7 @@
 //                 style: new TextStyle(
 //                     fontWeight: FontWeight.bold, color: Colors.brown),
 //               ),
-//               new Padding(
-//                 padding: new EdgeInsets.all(5.0),
-//               ),
-//               new Text(
-//                 "Fb provider data : " +
-//                     detailsUser.providerData[0].displayName +
-//                     " : " +
-//                     detailsUser.providerData[0].uid,
-//                 textAlign: TextAlign.center,
-//                 overflow: TextOverflow.ellipsis,
-//                 textScaleFactor: 1.2,
-//                 style: new TextStyle(
-//                     fontWeight: FontWeight.bold, color: Colors.brown),
-//               ),
+              
 //               new Padding(padding: const EdgeInsets.all(10.0)),
 //               new Image.network(
 //                 detailsUser.photoUrl,
