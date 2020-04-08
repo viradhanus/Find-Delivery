@@ -14,8 +14,6 @@ import 'package:modal_progress_hud/modal_progress_hud.dart';
 // import 'package:finddelivery/pages/userProfileInfo.dart';
 import 'activity_feed.dart';
 
-final GoogleSignIn googleSignIn = GoogleSignIn();
-
 class Home extends StatefulWidget {
   @override
   _HomeState createState() => _HomeState();
@@ -27,84 +25,58 @@ class _HomeState extends State<Home> {
   PageController pageController;
   int pageIndex = 0;
 
-  FirebaseAuth _auth = FirebaseAuth.instance;
+  FirebaseAuth _auth;
+  FirebaseUser mCurrentUser;
 
   @override
   void initState() {
     super.initState();
     pageController = PageController();
 
-    // FirebaseAuth.instance.currentUser().then((firebaseUser) {
-    //   if (firebaseUser == null) {
-    //     //signed out
-    //     setState(() {
-    //       isAuth = false;
-    //     });
-    //   } else {
-    //     //signed in
-    //     setState(() {
-    //       isAuth = true;
-    //     });
-    //   }
-    // });
+    _auth = FirebaseAuth.instance;
+    _getCurrentUser();
+    print('here outside async');
 
     // Detects when user signed in
-    googleSignIn.onCurrentUserChanged.listen((account) {
-      addFirebaseAuth(account);
-      handleSignIn(account);
-    }, onError: (err) {
-      showToast('Signing In Failed');
-      print('Error signing in: $err');
-    });
+    // googleSignIn.onCurrentUserChanged.listen((account) {
+    //   addFirebaseAuth(account);
+    //   handleSignIn(account);
+    // }, onError: (err) {
+    //   showToast('Signing In Failed');
+    //   print('Error signing in: $err');
+    // });
     // Reauthenticate user when app is opened
-    googleSignIn.signInSilently(suppressErrors: false).then((account) {
-      handleSignIn(account);
-    }).catchError((err) {
-      print('silently: $err');
+    // googleSignIn.signInSilently(suppressErrors: false).then((account) {
+    //   handleSignIn(account);
+    // }).catchError((err) {
+    //   print('silently: $err');
+    // });
+  }
+
+  _getCurrentUser() async {
+    mCurrentUser = await _auth.currentUser(); //user in the cache
+    setState(() {
+      mCurrentUser != null ? isAuth = true : isAuth = false;
     });
   }
 
-  addFirebaseAuth(GoogleSignInAccount googleUser) async {
-    if (googleUser != null) {
-      GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-      final AuthCredential credential = GoogleAuthProvider.getCredential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-      final FirebaseUser user =
-          (await _auth.signInWithCredential(credential)).user;
-      showToast("Hi, " + user.displayName);
-    }
-  }
-
-  handleSignIn(GoogleSignInAccount account) {
-    if (account != null) {
-      print('User signed in!: $account');
-
-      setState(() {
-        showSpinner = false;
-        isAuth = true;
-      });
-    } else {
-      setState(() {
-        showSpinner = false;
-        isAuth = false;
-      });
-    }
-  }
+  // addFirebaseAuth(GoogleSignInAccount googleUser) async {
+  //   if (googleUser != null) {
+  //     GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+  //     final AuthCredential credential = GoogleAuthProvider.getCredential(
+  //       accessToken: googleAuth.accessToken,
+  //       idToken: googleAuth.idToken,
+  //     );
+  //     final FirebaseUser user =
+  //         (await _auth.signInWithCredential(credential)).user;
+  //     showToast("Hi, " + user.displayName);
+  //   }
+  // }
 
   @override
   void dispose() {
     pageController.dispose();
     super.dispose();
-  }
-
-  login() {
-    googleSignIn.signIn();
-  }
-
-  logout() {
-    googleSignIn.signOut();
   }
 
   onPageChanged(int pageIndex) {
@@ -128,6 +100,45 @@ class _HomeState extends State<Home> {
         textColor: Colors.white);
   }
 
+//google stuff
+  final GoogleSignIn googleSignIn = GoogleSignIn();
+
+  Future<void> signInWithGoogle() async {
+    final GoogleSignInAccount googleSignInAccount = await googleSignIn.signIn();
+    handleSignIn(googleSignInAccount);
+  }
+
+  handleSignIn(GoogleSignInAccount googleSignInAccount) async {
+    if (googleSignInAccount != null) {
+      print('User signed in!: $googleSignInAccount');
+
+      final GoogleSignInAuthentication googleSignInAuthentication =
+          await googleSignInAccount.authentication;
+
+      final AuthCredential credential = GoogleAuthProvider.getCredential(
+        accessToken: googleSignInAuthentication.accessToken,
+        idToken: googleSignInAuthentication.idToken,
+      );
+
+      final AuthResult authResult =
+          await _auth.signInWithCredential(credential);
+      final FirebaseUser user = authResult.user;
+      showToast("Hi, " + user.displayName);
+
+      // return 'signInWithGoogle succeeded: $user';
+
+      setState(() {
+        showSpinner = false;
+        isAuth = true;
+      });
+    } else {
+      setState(() {
+        showSpinner = false;
+        isAuth = false;
+      });
+    }
+  }
+
 //facebook stuff
   static final FacebookLogin facebookSignIn = new FacebookLogin();
 
@@ -144,6 +155,7 @@ class _HomeState extends State<Home> {
             accessToken: result.accessToken.token);
 
         FirebaseUser user = (await _auth.signInWithCredential(credential)).user;
+        showToast("Hi, " + user.displayName);
 
         // UserInfoDetails userInfoDetails = new UserInfoDetails(
         //   user.uid,
@@ -159,14 +171,12 @@ class _HomeState extends State<Home> {
         // );
         setState(() {
           showSpinner = false;
-          isAuth = true;
+          isAuth = true; //showLoggedInUI
         });
-        // return user;
-        // _showLoggedInUI();
 
         break;
       case FacebookLoginStatus.cancelledByUser:
-        // _showCancelledMessage();
+        // showCancelledMessage
         showToast('Signing In Cancelled');
         setState(() {
           showSpinner = false;
@@ -174,7 +184,7 @@ class _HomeState extends State<Home> {
         });
         break;
       case FacebookLoginStatus.error:
-        // _showErrorOnUI(result.errorMessage);
+        // showErrorOnUI
         showToast('Signing In Failed');
         setState(() {
           showSpinner = false;
@@ -184,24 +194,32 @@ class _HomeState extends State<Home> {
     }
   }
 
-  Future<Null> _signOut(BuildContext context) async {
+  Future<void> _signOut() async {
     await facebookSignIn.logOut();
+
+    await googleSignIn.signOut();
+    await _auth.signOut();
     setState(() {
       isAuth = false;
     });
 
-    print('Signed out');
+    print("User Sign Out");
   }
+
+  // Future<void> _signOutFB() async {
+  // }
+
+  // Future<void> _signOutAuth() async {}
 
   Widget buildAuthScreen() {
     return Scaffold(
       appBar: AppBar(
         leading: new IconButton(
             icon: new Icon(Icons.arrow_back, color: Colors.black),
-            onPressed: () {
-              _signOut(context);
-              logout();
-            }),
+            onPressed: _signOut),
+        // () {
+        //   _signOut();
+        // }),
         title: Text("Sample"),
         centerTitle: true,
       ),
@@ -247,6 +265,7 @@ class _HomeState extends State<Home> {
   Widget buildUnAuthScreen() {
     return Scaffold(
       body: ModalProgressHUD(
+          // color: Colors.blueAccent,
           inAsyncCall: showSpinner,
           child: Container(
             color: Colors.white,
@@ -283,7 +302,8 @@ class _HomeState extends State<Home> {
                     setState(() {
                       showSpinner = true;
                     });
-                    login();
+                    // login();
+                    signInWithGoogle();
                   },
                   child: Container(
                     width: 180.0,
