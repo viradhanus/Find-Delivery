@@ -202,13 +202,13 @@ class _HomeState extends State<Home> {
 
   Widget buildAuthScreen() {
     return Scaffold(
-      appBar: AppBar(
-        leading: new IconButton(
-            icon: new Icon(Icons.arrow_back, color: Colors.black),
-            onPressed: _signOut),
-        title: Text("Sample"),
-        centerTitle: true,
-      ),
+      // appBar: AppBar(
+      //   leading: new IconButton(
+      //       icon: new Icon(Icons.arrow_back, color: Colors.black),
+      //       onPressed: _signOut),
+      //   title: Text("Sample"),
+      //   centerTitle: true,
+      // ),
       body: PageView(
         children: <Widget>[
           Timeline(),

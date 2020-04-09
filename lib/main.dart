@@ -12,8 +12,8 @@ class MyApp extends StatelessWidget {
       title: 'Find Delivery',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primaryColor: Colors.purple,
-        accentColor: Colors.redAccent,
+        primaryColor: Colors.blue,
+        accentColor: Colors.blueAccent
       ),
       home: Home(),
     );
