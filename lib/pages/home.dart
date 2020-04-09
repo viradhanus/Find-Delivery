@@ -6,6 +6,7 @@ import 'package:finddelivery/pages/upload.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_auth_buttons/flutter_auth_buttons.dart';
 import 'package:flutter_facebook_login/flutter_facebook_login.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -143,10 +144,6 @@ class _HomeState extends State<Home> {
   static final FacebookLogin facebookSignIn = new FacebookLogin();
 
   Future _signIn(BuildContext context) async {
-    setState(() {
-      showSpinner = true;
-    });
-
     final FacebookLoginResult result = await facebookSignIn.logIn(['email']);
 
     switch (result.status) {
@@ -170,7 +167,6 @@ class _HomeState extends State<Home> {
         //   ),
         // );
         setState(() {
-          showSpinner = false;
           isAuth = true; //showLoggedInUI
         });
 
@@ -179,7 +175,6 @@ class _HomeState extends State<Home> {
         // showCancelledMessage
         showToast('Signing In Cancelled');
         setState(() {
-          showSpinner = false;
           isAuth = false;
         });
         break;
@@ -187,7 +182,6 @@ class _HomeState extends State<Home> {
         // showErrorOnUI
         showToast('Signing In Failed');
         setState(() {
-          showSpinner = false;
           isAuth = false;
         });
         break;
@@ -206,20 +200,12 @@ class _HomeState extends State<Home> {
     print("User Sign Out");
   }
 
-  // Future<void> _signOutFB() async {
-  // }
-
-  // Future<void> _signOutAuth() async {}
-
   Widget buildAuthScreen() {
     return Scaffold(
       appBar: AppBar(
         leading: new IconButton(
             icon: new Icon(Icons.arrow_back, color: Colors.black),
             onPressed: _signOut),
-        // () {
-        //   _signOut();
-        // }),
         title: Text("Sample"),
         centerTitle: true,
       ),
@@ -270,6 +256,7 @@ class _HomeState extends State<Home> {
           child: Container(
             color: Colors.white,
             alignment: Alignment.center,
+            padding: EdgeInsetsDirectional.only(top:10.0,bottom: 5.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -297,36 +284,29 @@ class _HomeState extends State<Home> {
                 SizedBox(
                   height: 40,
                 ),
-                GestureDetector(
-                  onTap: () {
+                GoogleSignInButton(
+                  onPressed: () {
                     setState(() {
                       showSpinner = true;
                     });
                     // login();
                     signInWithGoogle();
                   },
-                  child: Container(
-                    width: 180.0,
-                    height: 40.0,
-                    decoration: BoxDecoration(
-                      image: DecorationImage(
-                          image: AssetImage(
-                              'assets/images/google_signin_button.png'),
-                          fit: BoxFit.cover),
-                    ),
-                  ),
+                  darkMode: true, // default: false
                 ),
                 SizedBox(
-                  height: 40,
+                  height: 25,
                 ),
-                MaterialButton(
-                  minWidth: 150.0,
-                  onPressed: () => _signIn(context)
+                FacebookSignInButton(onPressed: () {
+                  _signIn(context)
                       // .then((FirebaseUser user) => print(user))
-                      .catchError((e) => print(e)),
-                  child: new Text('Sign in with Facebook'),
-                  color: Colors.lightBlueAccent,
-                ),
+                      .catchError((e) {
+                    if (e.code ==
+                        "ERROR_ACCOUNT_EXISTS_WITH_DIFFERENT_CREDENTIAL") {
+                      showToast("Please Sign In With Google");
+                    }
+                  });
+                }),
               ],
             ),
           )),
