@@ -1,4 +1,7 @@
 import 'dart:developer';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:finddelivery/models/user.dart';
+import 'package:finddelivery/pages/create_account.dart';
 import 'package:finddelivery/pages/timeline.dart';
 import 'package:finddelivery/pages/profile.dart';
 import 'package:finddelivery/pages/search.dart';
@@ -14,6 +17,11 @@ import 'package:modal_progress_hud/modal_progress_hud.dart';
 
 // import 'package:finddelivery/pages/userProfileInfo.dart';
 import 'activity_feed.dart';
+
+final userRef = Firestore.instance.collection('users');
+final DateTime timestamp = DateTime.now();
+
+User currentUserWithInfo;
 
 class Home extends StatefulWidget {
   @override
@@ -36,7 +44,6 @@ class _HomeState extends State<Home> {
 
     _auth = FirebaseAuth.instance;
     _getCurrentUser();
-    print('here outside async');
 
     // Detects when user signed in
     // googleSignIn.onCurrentUserChanged.listen((account) {
@@ -56,9 +63,34 @@ class _HomeState extends State<Home> {
 
   _getCurrentUser() async {
     mCurrentUser = await _auth.currentUser(); //user in the cache
-    setState(() {
-      mCurrentUser != null ? isAuth = true : isAuth = false;
-    });
+    // setState(() {
+    //   mCurrentUser != null ? isAuth = true : isAuth = false;
+    // });
+
+    //get currentUserInfo for signed in user
+    if (mCurrentUser != null) {
+      setState(() {
+        isAuth = true;
+      });
+
+      DocumentSnapshot documentSnapshot =
+          await userRef.document(mCurrentUser.uid).get();
+      //go to createAccount page
+      if (documentSnapshot.exists) {
+        currentUserWithInfo = User.fromDocument(documentSnapshot);
+        print(currentUserWithInfo);
+        print(currentUserWithInfo.name);
+      } else {
+        setState(() {
+          isAuth = false;
+        });
+      }
+    } else {
+      setState(() {
+        isAuth = false;
+      });
+    }
+
   }
 
   // addFirebaseAuth(GoogleSignInAccount googleUser) async {
@@ -87,9 +119,8 @@ class _HomeState extends State<Home> {
   }
 
   onTap(int pageIndex) {
-    pageController.jumpToPage(
-      pageIndex,
-    );
+    pageController.animateToPage(pageIndex,
+        duration: Duration(milliseconds: 250), curve: Curves.easeInOut);
   }
 
   void showToast(message) {
@@ -111,7 +142,7 @@ class _HomeState extends State<Home> {
 
   handleSignIn(GoogleSignInAccount googleSignInAccount) async {
     if (googleSignInAccount != null) {
-      print('User signed in!: $googleSignInAccount');
+      // print('User signed in!: $googleSignInAccount');
 
       final GoogleSignInAuthentication googleSignInAuthentication =
           await googleSignInAccount.authentication;
@@ -124,7 +155,8 @@ class _HomeState extends State<Home> {
       final AuthResult authResult =
           await _auth.signInWithCredential(credential);
       final FirebaseUser user = authResult.user;
-      showToast("Hi, " + user.displayName);
+      // showToast("Hi, " + user.displayName);
+      createUserInFirestore(user);
 
       // return 'signInWithGoogle succeeded: $user';
 
@@ -152,20 +184,9 @@ class _HomeState extends State<Home> {
             accessToken: result.accessToken.token);
 
         FirebaseUser user = (await _auth.signInWithCredential(credential)).user;
-        showToast("Hi, " + user.displayName);
+        // showToast("Hi, " + user.displayName);
+        createUserInFirestore(user);
 
-        // UserInfoDetails userInfoDetails = new UserInfoDetails(
-        //   user.uid,
-        //   user.displayName,
-        //   user.photoUrl,
-        //   user.email,
-        // );
-        // Navigator.push(
-        //   context,
-        //   new MaterialPageRoute(
-        //     builder: (context) => new UserProfileInfo(detailsUser: userInfoDetails),
-        //   ),
-        // );
         setState(() {
           isAuth = true; //showLoggedInUI
         });
@@ -188,6 +209,33 @@ class _HomeState extends State<Home> {
     }
   }
 
+  createUserInFirestore(FirebaseUser user) async {
+    DocumentSnapshot documentSnapshot = await userRef.document(user.uid).get();
+    //go to createAccount page
+    if (!documentSnapshot.exists) {
+      final userInfoDetails = await Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => CreateAccount(
+                    dispName: user.displayName,
+                  )));
+      userRef.document(user.uid).setData({
+        "id": user.uid,
+        "name": userInfoDetails.name,
+        "homeNumber": userInfoDetails.homeNumber,
+        "street1": userInfoDetails.street1,
+        "street2": userInfoDetails.street2,
+        "city": userInfoDetails.city,
+        "timestamp": timestamp
+      });
+      documentSnapshot = await userRef.document(user.uid).get();
+
+      currentUserWithInfo = User.fromDocument(documentSnapshot);
+      print(currentUserWithInfo);
+      print(currentUserWithInfo.name);
+    }
+  }
+
   Future<void> _signOut() async {
     await facebookSignIn.logOut();
 
@@ -202,13 +250,13 @@ class _HomeState extends State<Home> {
 
   Widget buildAuthScreen() {
     return Scaffold(
-      // appBar: AppBar(
-      //   leading: new IconButton(
-      //       icon: new Icon(Icons.arrow_back, color: Colors.black),
-      //       onPressed: _signOut),
-      //   title: Text("Sample"),
-      //   centerTitle: true,
-      // ),
+      appBar: AppBar(
+        leading: new IconButton(
+            icon: new Icon(Icons.arrow_back, color: Colors.black),
+            onPressed: _signOut),
+        title: Text("Sample"),
+        centerTitle: true,
+      ),
       body: PageView(
         children: <Widget>[
           Timeline(),
@@ -256,7 +304,7 @@ class _HomeState extends State<Home> {
           child: Container(
             color: Colors.white,
             alignment: Alignment.center,
-            padding: EdgeInsetsDirectional.only(top:10.0,bottom: 5.0),
+            padding: EdgeInsets.only(top: 20.0, bottom: 5.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -317,20 +365,4 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return isAuth ? buildAuthScreen() : buildUnAuthScreen();
   }
-}
-
-class UserInfoDetails {
-  UserInfoDetails(this.uid, this.displayName, this.photoUrl, this.email);
-
-  /// The provider’s user ID for the user.
-  final String uid;
-
-  /// The name of the user.
-  final String displayName;
-
-  /// The URL of the user’s profile photo.
-  final String photoUrl;
-
-  /// The user’s email address.
-  final String email;
 }
