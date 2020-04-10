@@ -75,12 +75,12 @@ class _HomeState extends State<Home> {
 
       DocumentSnapshot documentSnapshot =
           await userRef.document(mCurrentUser.uid).get();
-      //go to createAccount page
+     
       if (documentSnapshot.exists) {
         currentUserWithInfo = User.fromDocument(documentSnapshot);
         print(currentUserWithInfo);
         print(currentUserWithInfo.name);
-      } else {
+      } else {        //block user => delete document/auth
         setState(() {
           isAuth = false;
         });
@@ -211,7 +211,7 @@ class _HomeState extends State<Home> {
 
   createUserInFirestore(FirebaseUser user) async {
     DocumentSnapshot documentSnapshot = await userRef.document(user.uid).get();
-    //go to createAccount page
+    //go to createAccount page - only for first reigstration
     if (!documentSnapshot.exists) {
       final userInfoDetails = await Navigator.push(
           context,
