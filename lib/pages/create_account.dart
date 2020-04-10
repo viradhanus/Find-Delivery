@@ -1,5 +1,6 @@
 import 'package:finddelivery/widgets/header.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class CreateAccount extends StatefulWidget {
   final String dispName;
@@ -19,27 +20,39 @@ class _CreateAccountState extends State<CreateAccount> {
   String city;
 
   submit() {
-    _formKey.currentState.save();
+    final form = _formKey.currentState;
 
-    UserInfoDetails userInfoDetails =
-        new UserInfoDetails(name, homeNumber, street1, street2, city);
+    if (form.validate()) {
+      form.save();
+      showToast("Hi, $name");
+      UserInfoDetails userInfoDetails =
+          new UserInfoDetails(name, homeNumber, street1, street2, city);
 
-    Navigator.pop(context, userInfoDetails);
+      Navigator.pop(context, userInfoDetails);
+    }
   }
 
   @override
   Widget build(BuildContext parentContext) {
     return Scaffold(
-      appBar: header(context, titleText: "Set up your profile"),
+      appBar: header(context, titleText: "Set up your profile",removeBackbtn: true),
       body: ListView(
         children: <Widget>[
           Form(
             key: _formKey,
+            autovalidate: true,
             child: Column(
               children: <Widget>[
                 Padding(
                   padding: EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0),
                   child: TextFormField(
+                    validator: (val) {
+                      if (val.trim().length < 3) {
+                        return "Enter Valid Name";
+                      } else {
+                        return null;
+                      }
+                    },
                     onSaved: (val) => name = val,
                     initialValue: widget.dispName,
                     decoration: InputDecoration(
@@ -134,6 +147,15 @@ class _CreateAccountState extends State<CreateAccount> {
     );
   }
 }
+
+  void showToast(message) {
+    Fluttertoast.showToast(
+        msg: message,
+        toastLength: Toast.LENGTH_SHORT,
+        // toastLength: Toast.LENGTH_LONG,
+        backgroundColor: Colors.blue,
+        textColor: Colors.white);
+  }
 
 class UserInfoDetails {
   UserInfoDetails(
