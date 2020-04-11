@@ -1,8 +1,6 @@
-import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:finddelivery/models/user.dart';
 import 'package:finddelivery/pages/create_account.dart';
-import 'package:finddelivery/pages/timeline.dart';
 import 'package:finddelivery/pages/profile.dart';
 import 'package:finddelivery/pages/search.dart';
 import 'package:finddelivery/pages/upload.dart';
@@ -75,12 +73,13 @@ class _HomeState extends State<Home> {
 
       DocumentSnapshot documentSnapshot =
           await userRef.document(mCurrentUser.uid).get();
-     
+
       if (documentSnapshot.exists) {
         currentUserWithInfo = User.fromDocument(documentSnapshot);
         print(currentUserWithInfo);
         print(currentUserWithInfo.name);
-      } else {        //block user => delete document/auth
+      } else {
+        //block user => delete document/auth
         setState(() {
           isAuth = false;
         });
@@ -90,7 +89,6 @@ class _HomeState extends State<Home> {
         isAuth = false;
       });
     }
-
   }
 
   // addFirebaseAuth(GoogleSignInAccount googleUser) async {
@@ -250,20 +248,17 @@ class _HomeState extends State<Home> {
 
   Widget buildAuthScreen() {
     return Scaffold(
-      appBar: AppBar(
-        leading: new IconButton(
-            icon: new Icon(Icons.arrow_back, color: Colors.black),
-            onPressed: _signOut),
-        title: Text("Sample"),
-        centerTitle: true,
-      ),
       body: PageView(
         children: <Widget>[
-          Timeline(),
+          // Timeline(),
+          RaisedButton(
+            child: Text('Logout'),
+            onPressed: _signOut,
+          ),
           ActivityFeed(),
           Upload(),
           Search(),
-          Profile(),
+          Profile(userID: currentUserWithInfo?.id),
         ],
         controller: pageController,
         onPageChanged: onPageChanged,
