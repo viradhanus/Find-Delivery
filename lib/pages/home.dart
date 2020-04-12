@@ -13,8 +13,6 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-// import 'package:finddelivery/pages/userProfileInfo.dart';
 import 'activity_feed.dart';
 
 final userRef = Firestore.instance.collection('users');
@@ -59,7 +57,6 @@ class _HomeState extends State<Home> {
 
       if (documentSnapshot.exists) {
         currentUserWithInfo = User.fromDocument(documentSnapshot);
-        print("shredpref");
         print(currentUserWithInfo);
         print(currentUserWithInfo.name);
       } else {
@@ -75,18 +72,6 @@ class _HomeState extends State<Home> {
     }
   }
 
-  // addFirebaseAuth(GoogleSignInAccount googleUser) async {
-  //   if (googleUser != null) {
-  //     GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-  //     final AuthCredential credential = GoogleAuthProvider.getCredential(
-  //       accessToken: googleAuth.accessToken,
-  //       idToken: googleAuth.idToken,
-  //     );
-  //     final FirebaseUser user =
-  //         (await _auth.signInWithCredential(credential)).user;
-  //     showToast("Hi, " + user.displayName);
-  //   }
-  // }
 
   @override
   void dispose() {
@@ -124,7 +109,6 @@ class _HomeState extends State<Home> {
 
   handleSignIn(GoogleSignInAccount googleSignInAccount) async {
     if (googleSignInAccount != null) {
-      // print('User signed in!: $googleSignInAccount');
 
       final GoogleSignInAuthentication googleSignInAuthentication =
           await googleSignInAccount.authentication;
@@ -137,12 +121,9 @@ class _HomeState extends State<Home> {
       final AuthResult authResult =
           await _auth.signInWithCredential(credential);
       final FirebaseUser user = authResult.user;
-      // showToast("Hi, " + user.displayName);
       shredprefUser(user.uid);
 
       createUserInFirestore(user);
-
-      // return 'signInWithGoogle succeeded: $user';
 
       setState(() {
         showSpinner = false;
