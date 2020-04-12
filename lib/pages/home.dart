@@ -12,6 +12,7 @@ import 'package:flutter_facebook_login/flutter_facebook_login.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // import 'package:finddelivery/pages/userProfileInfo.dart';
 import 'activity_feed.dart';
@@ -33,7 +34,6 @@ class _HomeState extends State<Home> {
   int pageIndex = 0;
 
   FirebaseAuth _auth;
-  FirebaseUser mCurrentUser;
 
   @override
   void initState() {
@@ -42,40 +42,24 @@ class _HomeState extends State<Home> {
 
     _auth = FirebaseAuth.instance;
     _getCurrentUser();
-
-    // Detects when user signed in
-    // googleSignIn.onCurrentUserChanged.listen((account) {
-    //   addFirebaseAuth(account);
-    //   handleSignIn(account);
-    // }, onError: (err) {
-    //   showToast('Signing In Failed');
-    //   print('Error signing in: $err');
-    // });
-    // Reauthenticate user when app is opened
-    // googleSignIn.signInSilently(suppressErrors: false).then((account) {
-    //   handleSignIn(account);
-    // }).catchError((err) {
-    //   print('silently: $err');
-    // });
   }
 
   _getCurrentUser() async {
-    mCurrentUser = await _auth.currentUser(); //user in the cache
-    // setState(() {
-    //   mCurrentUser != null ? isAuth = true : isAuth = false;
-    // });
-
+    WidgetsFlutterBinding.ensureInitialized();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var loggedUserId = prefs.getString('loggedUserId');
     //get currentUserInfo for signed in user
-    if (mCurrentUser != null) {
+    if (loggedUserId != null) {
       setState(() {
         isAuth = true;
       });
 
       DocumentSnapshot documentSnapshot =
-          await userRef.document(mCurrentUser.uid).get();
+          await userRef.document(loggedUserId).get();
 
       if (documentSnapshot.exists) {
         currentUserWithInfo = User.fromDocument(documentSnapshot);
+        print("shredpref");
         print(currentUserWithInfo);
         print(currentUserWithInfo.name);
       } else {
@@ -154,6 +138,8 @@ class _HomeState extends State<Home> {
           await _auth.signInWithCredential(credential);
       final FirebaseUser user = authResult.user;
       // showToast("Hi, " + user.displayName);
+      shredprefUser(user.uid);
+
       createUserInFirestore(user);
 
       // return 'signInWithGoogle succeeded: $user';
@@ -183,6 +169,8 @@ class _HomeState extends State<Home> {
 
         FirebaseUser user = (await _auth.signInWithCredential(credential)).user;
         // showToast("Hi, " + user.displayName);
+        shredprefUser(user.uid);
+
         createUserInFirestore(user);
 
         setState(() {
@@ -207,6 +195,11 @@ class _HomeState extends State<Home> {
     }
   }
 
+  Future<void> shredprefUser(String uid) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString('loggedUserId', uid);
+  }
+
   createUserInFirestore(FirebaseUser user) async {
     DocumentSnapshot documentSnapshot = await userRef.document(user.uid).get();
     //go to createAccount page - only for first reigstration
@@ -226,19 +219,22 @@ class _HomeState extends State<Home> {
         "city": userInfoDetails.city,
         "timestamp": timestamp
       });
-      documentSnapshot = await userRef.document(user.uid).get();
-
-      currentUserWithInfo = User.fromDocument(documentSnapshot);
-      print(currentUserWithInfo);
-      print(currentUserWithInfo.name);
     }
+    documentSnapshot = await userRef.document(user.uid).get();
+
+    currentUserWithInfo = User.fromDocument(documentSnapshot);
+    print(currentUserWithInfo);
+    print(currentUserWithInfo.name);
   }
 
   Future<void> _signOut() async {
     await facebookSignIn.logOut();
-
     await googleSignIn.signOut();
     await _auth.signOut();
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.remove('loggedUserId');
+
     setState(() {
       isAuth = false;
     });
