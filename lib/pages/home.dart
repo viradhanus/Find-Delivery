@@ -18,6 +18,10 @@ import 'activity_feed.dart';
 final userRef = Firestore.instance.collection('users');
 final DateTime timestamp = DateTime.now();
 
+FirebaseAuth _auth = FirebaseAuth.instance;
+final FacebookLogin facebookSignIn = new FacebookLogin();
+final GoogleSignIn googleSignIn = GoogleSignIn();
+
 User currentUserWithInfo;
 
 class Home extends StatefulWidget {
@@ -31,14 +35,11 @@ class _HomeState extends State<Home> {
   PageController pageController;
   int pageIndex = 0;
 
-  FirebaseAuth _auth;
-
   @override
   void initState() {
     super.initState();
     pageController = PageController();
 
-    _auth = FirebaseAuth.instance;
     _getCurrentUser();
   }
 
@@ -72,7 +73,6 @@ class _HomeState extends State<Home> {
     }
   }
 
-
   @override
   void dispose() {
     pageController.dispose();
@@ -100,7 +100,7 @@ class _HomeState extends State<Home> {
   }
 
 //google stuff
-  final GoogleSignIn googleSignIn = GoogleSignIn();
+  // final GoogleSignIn googleSignIn = GoogleSignIn();
 
   Future<void> signInWithGoogle() async {
     final GoogleSignInAccount googleSignInAccount = await googleSignIn.signIn();
@@ -109,7 +109,6 @@ class _HomeState extends State<Home> {
 
   handleSignIn(GoogleSignInAccount googleSignInAccount) async {
     if (googleSignInAccount != null) {
-
       final GoogleSignInAuthentication googleSignInAuthentication =
           await googleSignInAccount.authentication;
 
@@ -138,7 +137,7 @@ class _HomeState extends State<Home> {
   }
 
 //facebook stuff
-  static final FacebookLogin facebookSignIn = new FacebookLogin();
+  // static final FacebookLogin facebookSignIn = new FacebookLogin();
 
   Future _signIn(BuildContext context) async {
     final FacebookLoginResult result = await facebookSignIn.logIn(['email']);
